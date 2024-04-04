@@ -1,0 +1,35 @@
+{
+    "data": [
+      {
+        "product_name": "Apple",
+        "quantity": 5,
+        "price_per_unit": 1.5,
+        "total_price": 7.5
+      },
+      {
+        "product_name": "Banana",
+        "quantity": 3,
+        "price_per_unit": 0.75,
+        "total_price": 2.25
+      },
+      {
+        "product_name": "Orange",
+        "quantity": 4,
+        "price_per_unit": 1.25,
+        "total_price": 5
+      },
+      {
+        "product_name": "Mango",
+        "quantity": 2,
+        "price_per_unit": 2.0,
+        "total_price": 4.0
+      },
+      {
+        "product_name": "Grapes",
+        "quantity": 6,
+        "price_per_unit": 0.5,
+        "total_price": 3.0
+      }
+    ]
+  }
+  
