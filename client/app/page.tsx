@@ -15,6 +15,7 @@ export default function Home() {
   const [fullname, setFullname] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentURL, setPaymentURL] = useState('');
+  const [email, setEmail] = useState('');
 
   const [orderItems, setOrderItems] = useState<OrderItemType[]>([]);
 
@@ -39,12 +40,12 @@ export default function Home() {
         fullname,
         phoneNumber,
         items: orderItems,
-        subtotal: orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0)
+        subtotal: orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0),
+        email
       })
 
       showToast()
     } catch (error) {
-      console.log(error);
       alert("Error")
     }
   }
@@ -98,7 +99,6 @@ export default function Home() {
 
   const generateQR = () => {
     const subtotal = orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0)
-    console.log(subtotal);
     QRcode.toDataURL(`upi://pay?pa=tejasnanoti2-1@oksbi&pn=Invoiced&am=${subtotal}&cu=INR`, function(err, url) { setPaymentURL(url) })
   }
 
@@ -109,6 +109,7 @@ export default function Home() {
     setPhoneNumber('')
     setOrderItems([])
     setPaymentURL('')
+    setEmail('')
   }
 
   const showToast = () => {
@@ -135,6 +136,7 @@ export default function Home() {
               <div className="flex flex-col gap-3 mt-4">
                 <input value={fullname} type="text" placeholder="Full name" className="input w-full" onChange={e => setFullname(e.target.value)} />
                 <input value={phoneNumber} type="text" placeholder="Phone number" className="input w-full" onChange={e => setPhoneNumber(e.target.value)} />
+                <input value={email} type="email" placeholder="Email" className="input w-full" onChange={e => setEmail(e.target.value)} />
               </div>
             </div>
           </div>

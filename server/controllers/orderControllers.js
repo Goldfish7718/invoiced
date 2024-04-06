@@ -20,13 +20,14 @@ export const getOrders = async (req, res) => {
 
 export const postOrder = async (req, res) => {
     try {
-        const { fullname, phoneNumber, items, subtotal } = req.body;
+        const { fullname, phoneNumber, items, subtotal, email } = req.body;
 
         const newOrder = await Order.create({
             fullname,
             phoneNumber,
             items,
-            subtotal
+            subtotal,
+            email
         })
 
         var data = {
@@ -53,8 +54,6 @@ export const postOrder = async (req, res) => {
         console.log(data);
 
         easyinvoice.createInvoice(data, function (result) {
-            // fs.writeFileSync("invoice.pdf", result.pdf, 'base64');
-
             const senderMail = process.env.SENDER_MAIL
             const password = process.env.APP_SPECIFIC_PASSWORD
 
@@ -70,7 +69,7 @@ export const postOrder = async (req, res) => {
 
             const mailOptions = {
                 from: senderMail,
-                to: senderMail,
+                to: email,
                 subject: 'Invoice for your order at Invoiced',
                 text: `Please find the attached invoice below. Invoice #${newOrder._id}`,
                 attachments: [{
@@ -82,10 +81,8 @@ export const postOrder = async (req, res) => {
 
             transporter.sendMail(mailOptions, function (error, info) {
                 if (error) {
-                    console.log(error);
                     res.status(500).json({ message: "Error sending email" });
                 } else {
-                    console.log('Email sent: ' + info.response);
                     res.status(200).json({ message: "Email sent successfully" });
                 }
             });
@@ -96,7 +93,6 @@ export const postOrder = async (req, res) => {
             .json({ message: "Order saved successfully" })
 
     } catch (error) {
-        console.log(error);
         res
             .status(500)
             .json({ message: "Internal Server Error" })
