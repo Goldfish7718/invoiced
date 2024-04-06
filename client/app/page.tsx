@@ -1,19 +1,24 @@
 "use client"
 
-import orderData from '@/data/orderData.json'
 import { ItemType, OrderItemType, OrderType } from '@/types/types';
 import axios from 'axios';
-import { Check, Minus, Plus, QrCode, ReceiptIndianRupee, Trash, X } from 'lucide-react';
+import { Check, Plus, QrCode, ReceiptIndianRupee, Trash, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import QRcode from 'qrcode'
 
 export default function Home() {
 
   const [items, setItems] = useState<ItemType[]>([]);
 
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [currItem, setCurrItem] = useState('');
+  const [fullname, setFullname] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentURL, setPaymentURL] = useState('');
 
   const [orderItems, setOrderItems] = useState<OrderItemType[]>([]);
+
+  const [toastIsVisible, setToastIsVisible] = useState(false)
 
   const fetchItems = async () => {
     try {
@@ -21,6 +26,23 @@ export default function Home() {
       // console.log(process.env.API_URL);
       
       setItems(res.data.items)
+    } catch (error) {
+      console.log(error);
+      alert("Error")
+    }
+  }
+
+  const saveOrder = async () => {
+    try {
+      clearOrder()
+      const res = await axios.post(`http://localhost:5000/orders/new`, {
+        fullname,
+        phoneNumber,
+        items: orderItems,
+        subtotal: orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0)
+      })
+
+      showToast()
     } catch (error) {
       console.log(error);
       alert("Error")
@@ -48,6 +70,9 @@ export default function Home() {
 
       setOrderItems(arrayToUpdate)
       console.log(arrayToUpdate);
+
+      setQuantity(1)
+
       return;
     }
 
@@ -62,13 +87,36 @@ export default function Home() {
   
     const updatedItems = [...orderItems, newItem];
     setOrderItems(updatedItems);
-    console.log(updatedItems);
+    setQuantity(1)
   }
 
   const removeOrder = (_id: string) => {
     const updatedItems = orderItems.filter(order => order._id !== _id)
     setOrderItems(updatedItems)
     console.log(updatedItems);
+  }
+
+  const generateQR = () => {
+    const subtotal = orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0)
+    console.log(subtotal);
+    QRcode.toDataURL(`upi://pay?pa=tejasnanoti2-1@oksbi&pn=Invoiced&am=${subtotal}&cu=INR`, function(err, url) { setPaymentURL(url) })
+  }
+
+  const clearOrder = () => {
+    setCurrItem('')
+    setQuantity(1)
+    setFullname('')
+    setPhoneNumber('')
+    setOrderItems([])
+    setPaymentURL('')
+  }
+
+  const showToast = () => {
+    setToastIsVisible(true)
+
+    setTimeout(() => {
+      setToastIsVisible(false)
+    }, 3000);
   }
 
   useEffect(() => {
@@ -85,8 +133,8 @@ export default function Home() {
               <h3 className="card-title">Enter customer details:</h3>
 
               <div className="flex flex-col gap-3 mt-4">
-                <input type="text" placeholder="Full name" className="input w-full" />
-                <input type="text" placeholder="Phone number" className="input w-full" />
+                <input value={fullname} type="text" placeholder="Full name" className="input w-full" onChange={e => setFullname(e.target.value)} />
+                <input value={phoneNumber} type="text" placeholder="Phone number" className="input w-full" onChange={e => setPhoneNumber(e.target.value)} />
               </div>
             </div>
           </div>
@@ -97,9 +145,10 @@ export default function Home() {
               <h3 className="card-title">Actions:</h3>
 
               <div className="flex flex-col gap-2 mt-4 h-full">
-                <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Clear Order <X /></button>
-                <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Generate Payment QR <QrCode /></button>
-                <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Mark as done <Check /></button>
+                <button onClick={clearOrder} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Clear Order <X /></button>
+                {/* @ts-ignore */}
+                <button onClick={() => { generateQR(); document.getElementById('payment_modal').showModal() }} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Generate Payment QR <QrCode /></button>
+                <button onClick={saveOrder} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Mark as done <Check /></button>
                 <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Show bill <ReceiptIndianRupee /></button>
               </div>
             </div>
@@ -114,13 +163,14 @@ export default function Home() {
             <div className="form-control w-full">
               <div className='flex flex-col'>
                 <span className="label-text-alt my-2">Select items to add to order:</span>
-                <select className="select select-bordered" onChange={e => setCurrItem(e.target.value)}>
+                <select className="select select-bordered" onChange={e => setCurrItem(e.target.value)} value={currItem}>
+                  <option value="" disabled>Select</option>
                   {items.map(item => <option value={item.name} key={item._id}>{item.name} &#40;&#8377;{item.price}&#41;</option>)}
                 </select>
               </div>
               <div className='flex flex-col'>
                 <span className="label-text-alt my-2">Select Quantity:</span>
-                <input type="number" className="input" onChange={e => setQuantity(parseInt(e.target.value))} />
+                <input value={quantity} type="number" className="input" onChange={e => setQuantity(parseInt(e.target.value))} />
               </div>
 
               <button onClick={addToOrder} className="btn bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black my-3">Add Item <Plus /></button>
@@ -159,6 +209,24 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        <dialog id="payment_modal" className="modal">
+          <div className="modal-box flex flex-col items-center">
+            <h3 className="font-bold text-lg text-center">Payment QR</h3>
+            <img src={paymentURL} alt="qr" className='rounded-md my-6' />
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
+
+        {toastIsVisible && 
+          <div className="toast toast-end">
+            <div className="alert alert-success">
+              <span>Order saved successfully.</span>
+            </div>
+          </div>
+        }
       </main>
     </>
   );
