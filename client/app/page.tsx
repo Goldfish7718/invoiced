@@ -1,15 +1,88 @@
+"use client"
+
 import orderData from '@/data/orderData.json'
+import { ItemType, OrderItemType, OrderType } from '@/types/types';
+import axios from 'axios';
 import { Check, Minus, Plus, QrCode, ReceiptIndianRupee, Trash, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+
+  const [items, setItems] = useState<ItemType[]>([]);
+
+  const [quantity, setQuantity] = useState(0);
+  const [currItem, setCurrItem] = useState('');
+
+  const [orderItems, setOrderItems] = useState<OrderItemType[]>([]);
+
+  const fetchItems = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/items`)
+      // console.log(process.env.API_URL);
+      
+      setItems(res.data.items)
+    } catch (error) {
+      console.log(error);
+      alert("Error")
+    }
+  }
+
+  const addToOrder = () => {
+    const selectedItem = items.find(item => item.name === currItem);
+    const exists = orderItems.find(order => order.name === currItem)
+    
+    if (!selectedItem) return; // Handle case where item is not found
+
+    if (exists) {
+      let arrayToUpdate = orderItems.filter(order => order.name !== currItem)
+      
+      const newItem: OrderItemType = {
+        name: selectedItem.name,
+        price: selectedItem.price,
+        aggregatedPrice: selectedItem.price * quantity,
+        quantity,
+        _id: selectedItem._id
+      }
+
+      arrayToUpdate = [...arrayToUpdate, newItem]
+
+      setOrderItems(arrayToUpdate)
+      console.log(arrayToUpdate);
+      return;
+    }
+
+  
+    const newItem: OrderItemType = {
+      name: selectedItem.name,
+      price: selectedItem.price,
+      aggregatedPrice: selectedItem.price * quantity,
+      quantity,
+      _id: selectedItem._id
+    };
+  
+    const updatedItems = [...orderItems, newItem];
+    setOrderItems(updatedItems);
+    console.log(updatedItems);
+  }
+
+  const removeOrder = (_id: string) => {
+    const updatedItems = orderItems.filter(order => order._id !== _id)
+    setOrderItems(updatedItems)
+    console.log(updatedItems);
+  }
+
+  useEffect(() => {
+    fetchItems()
+  }, [])
+
   return (
     <>
-      <main className="p-6 flex gap-3">
+      <main className="p-3 md:p-6 flex md:flex-row flex-col-reverse gap-3">
         {/* LEFT PANEL */}
-        <div className="w-1/3 flex flex-col gap-4">
+        <div className="md:w-1/3 w-full flex flex-col gap-4">
           <div className="card w-full bg-neutral text-neutral-content">
             <div className="card-body">
-              <h3 className="card-title">Enter customer details</h3>
+              <h3 className="card-title">Enter customer details:</h3>
 
               <div className="flex flex-col gap-3 mt-4">
                 <input type="text" placeholder="Full name" className="input w-full" />
@@ -21,7 +94,7 @@ export default function Home() {
           {/* ORDER ACTIONS */}
           <div className="card w-full bg-neutral text-neutral-content h-full">
             <div className="card-body">
-              <h3 className="card-title">Actions</h3>
+              <h3 className="card-title">Actions:</h3>
 
               <div className="flex flex-col gap-2 mt-4 h-full">
                 <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Clear Order <X /></button>
@@ -34,24 +107,23 @@ export default function Home() {
         </div>
 
         {/* BILLING AREA */}
-        <div className="w-2/3 card bg-neutral text-neutral-content">
+        <div className="md:w-2/3 w-full card bg-neutral text-neutral-content">
           <div className="card-body">
             <h3 className="card-title">Billing area:</h3>
 
             <div className="form-control w-full">
               <div className='flex flex-col'>
                 <span className="label-text-alt my-2">Select items to add to order:</span>
-                <select className="select select-bordered">
-                  <option value="rice">Rice</option>
-                  <option value="wheat">Wheat</option>
-                  <option value="mangoes" selected>Mangoes</option>
-                  <option value="maggie">Maggie</option>
+                <select className="select select-bordered" onChange={e => setCurrItem(e.target.value)}>
+                  {items.map(item => <option value={item.name} key={item._id}>{item.name} &#40;&#8377;{item.price}&#41;</option>)}
                 </select>
               </div>
               <div className='flex flex-col'>
                 <span className="label-text-alt my-2">Select Quantity:</span>
-                <input type="number" className="input" />
+                <input type="number" className="input" onChange={e => setQuantity(parseInt(e.target.value))} />
               </div>
+
+              <button onClick={addToOrder} className="btn bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black my-3">Add Item <Plus /></button>
             </div>
 
             <div className='max-h-96 overflow-y-scroll'>
@@ -66,19 +138,13 @@ export default function Home() {
                 </thead>
 
                 <tbody>
-                  {orderData.data.map(order => (
-                    <tr>
-                      <td>{order.product_name}</td>
+                  {orderItems.map(order => (
+                    <tr key={order._id}>
+                      <td>{order.name}</td>
                       <td>{order.quantity}</td>
-                      <td>{order.total_price}</td>
+                      <td>{order.aggregatedPrice}</td>
                       <td className='flex gap-1'>
-                        <button className="btn btn-ghost btn-sm">
-                          <Plus size={18} />
-                        </button>
-                        <button className="btn btn-ghost btn-sm">
-                          <Minus size={18} />
-                        </button>
-                        <button className='btn btn-ghost btn-sm'>
+                        <button className='btn btn-ghost btn-sm' onClick={() => removeOrder(order._id)}>
                           <Trash size={18} />
                         </button>
                       </td>
@@ -89,7 +155,7 @@ export default function Home() {
             </div>
 
             <div className='mt-4'>
-              <h2><span className="font-bold text-lg">Subtotal: </span><span className="font-bold text-xl">&#8377;250</span></h2>
+              <h2><span className="font-bold text-lg">Subtotal: </span><span className="font-bold text-xl">&#8377;{orderItems.reduce((acc, order) => { return acc + order.aggregatedPrice }, 0)}</span></h2>
             </div>
           </div>
         </div>
