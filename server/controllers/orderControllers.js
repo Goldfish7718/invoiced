@@ -96,7 +96,7 @@ export const postOrder = async (req, res) => {
 
         client.messages
             .create({
-                body: `\n\nHello ${fullname}! Thank you for shopping with invoiced! Your order number is #${newOrder._id} with a subtotal of \u20B9${subtotal} containing the following items.\n\n${items.map(item => `${item.name} (${item.quantity})\n`)}\n\nThank you and visit again!`,
+                body: `\n\nHello ${fullname}! Thank you for shopping with invoiced! Your order number is #${newOrder._id} with a subtotal of \u20B9${subtotal} containing the following items.\n\n${items.map(item => `${item.name} (${item.quantity})`).join('\n')}\n\nThank you and visit again!`,
                 from: twilioPhone,
                 to: `+91${phoneNumber}`
             })

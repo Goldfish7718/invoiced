@@ -129,7 +129,7 @@ export default function Home() {
       <main className="p-3 md:p-6 flex md:flex-row flex-col-reverse gap-3">
         {/* LEFT PANEL */}
         <div className="md:w-1/3 w-full flex flex-col gap-4">
-          <div className="card w-full bg-neutral text-neutral-content">
+          <div className="card w-full bg-[#e6e7e8] dark:bg-neutral dark:text-neutral-content">
             <div className="card-body">
               <h3 className="card-title">Enter customer details:</h3>
 
@@ -142,23 +142,23 @@ export default function Home() {
           </div>
 
           {/* ORDER ACTIONS */}
-          <div className="card w-full bg-neutral text-neutral-content h-full">
+          <div className="card w-full h-full bg-[#e6e7e8] dark:bg-neutral dark:text-neutral-content">
             <div className="card-body">
               <h3 className="card-title">Actions:</h3>
 
-              <div className="flex flex-col gap-2 mt-4 h-full">
-                <button onClick={clearOrder} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Clear Order <X /></button>
+              <div className="flex flex-col gap-2 my-4 h-full">
+                <button onClick={clearOrder} className="btn btn-outline h-1/4 border-orange-300 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Clear Order <X /></button>
                 {/* @ts-ignore */}
-                <button onClick={() => { generateQR(); document.getElementById('payment_modal').showModal() }} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Generate Payment QR <QrCode /></button>
-                <button onClick={saveOrder} className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Mark as done <Check /></button>
-                <button className="btn btn-outline h-1/4 bg-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Show bill <ReceiptIndianRupee /></button>
+                <button onClick={() => { generateQR(); document.getElementById('payment_modal').showModal() }} className="btn btn-outline h-1/4 bg-orange-300 border-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Generate Payment QR <QrCode /></button>
+                <button onClick={saveOrder} className="btn btn-outline h-1/4 bg-orange-300 border-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Mark as done <Check /></button>
+                <button className="btn btn-outline h-1/4 bg-orange-300 border-orange-300 hover:bg-orange-400 hover:border-orange-400 text-black">Show bill <ReceiptIndianRupee /></button>
               </div>
             </div>
           </div>
         </div>
 
         {/* BILLING AREA */}
-        <div className="md:w-2/3 w-full card bg-neutral text-neutral-content">
+        <div className="md:w-2/3 w-full card bg-[#e6e7e8] dark:bg-neutral dark:text-neutral-content">
           <div className="card-body">
             <h3 className="card-title">Billing area:</h3>
 
